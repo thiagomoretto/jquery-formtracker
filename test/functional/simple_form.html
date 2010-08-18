@@ -42,14 +42,12 @@
 	<a class="undo" href="#" undo="last_name">Undo</a>
 	</p>
 
-	<!--
 	<p>
 	<label for="sex">Sex:</label>
 	<input type="radio" name="sex" id="sexM" value="M" checked="checked" /> Male
 	<input type="radio" name="sex" id="sexF" value="F" /> Female
-	<strong>Not working yet!</strong>
+	<a class="undo" href="#" undo="sexM">Undo</a>
 	</p>
-	-->
 	
 	<p>
 	<label for="profession">Profession:</label>
@@ -58,6 +56,12 @@
 		<option value="2">Webdesigner</option>
 		<option value="3">Other</option>
 	</select><a class="undo" href="#" undo="profession">Undo</a>
+	</p>
+	
+	<p>
+	<label for="description">Description:</label>
+	<textarea id="description">Your description here...</textarea>
+	<a class="undo" href="#" undo="description">Undo</a>
 	</p>
 	
 	<p>
@@ -126,6 +130,24 @@ $(function() {
 			
 			term.undo()
 			assert(!term.isChanged());
+		}},
+
+		testChangeAndUndoRadio: function() { with(this) {
+			sex = $("#term")
+			sex.attr('checked', 'checked')
+			assert(sex.isChanged());
+			
+			sex.undo()
+			assert(!sex.isChanged());
+		}},
+		
+		testChangeAndUndoTextarea: function() { with(this) {
+			description = $("#description")
+			description.val('some description')
+			assert(description.isChanged());
+			
+			description.undo()
+			assert(!description.isChanged());
 		}},
 
     testUndoVal: function() { with(this) {

@@ -10,7 +10,7 @@ $(function() {
 		if(parent != null) {
 			options = $.data(parent, 'options');
 			type = field.attr('type')
-			if(type == 'checkbox') {
+			if(type == 'checkbox' || type == 'radio') {
 				field.attr('checked', field.attr(options.originalAttr) == 'true' ? 'checked' : '')
 			} else {
 				field.val(field.attr(options.originalAttr))
@@ -25,7 +25,7 @@ $(function() {
 		if(parent != null) { 
 			options = $.data(parent, 'options');
 			type = field.attr('type')
-			if(type == 'checkbox') {
+			if(type == 'checkbox' || type == 'radio') {
 				return field.attr(options.originalAttr).toString() != field.is(':checked').toString()
 			} else {
 				return field.attr(options.originalAttr) != field.val()
@@ -84,7 +84,7 @@ $(function() {
 		return field.isChanged()
 	}
 	
-	var monitTextfield = function(options, parent, field) {
+	var monit = function(options, parent, field) {
 		if (changed(options, field)) {
 			options.changed(parent, field)
 		} else {
@@ -96,15 +96,16 @@ $(function() {
 		parent.elegibleChildren().each(function() {
 			field = $(this)
 			type  = field.attr('type')
-			if(type == 'checkbox') {
+			if(type == 'checkbox' || type == 'radio') {
+				eventsToBind = 'blur change'
 				field.attr(options.originalAttr, $(this).is(':checked'))
 			}
 			else { // everything else...
+				eventsToBind = 'blur keydown keyup change'
 				field.attr(options.originalAttr, $(this).val())
 			}
-			
-			field.bind('blur keydown keyup change', function() {
-				monitTextfield(options, parent, $(this))
+			field.bind(eventsToBind, function() {
+				monit(options, parent, $(this))
 			})
 			field.data('parent', parent)
 		});	
