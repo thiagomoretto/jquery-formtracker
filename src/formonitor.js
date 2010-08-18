@@ -8,9 +8,14 @@ $(function() {
 		field  = $(this)
 		parent = field.data('parent');
 		if(parent != null) {
-			var opts = $.data(parent, 'options');
-			field.val(field.attr(opts.originalAttr))
-			opts.unchanged(parent, field)
+			options = $.data(parent, 'options');
+			type = field.attr('type')
+			if(type == 'checkbox') {
+				field.attr('checked', field.attr(options.originalAttr) == 'true' ? 'checked' : '')
+			} else {
+				field.val(field.attr(options.originalAttr))
+			}
+			options.unchanged(parent, field)
 		}
 	}
 	
@@ -19,7 +24,12 @@ $(function() {
 		parent = field.data('parent');
 		if(parent != null) { 
 			options = $.data(parent, 'options');
-			return field.attr(options.originalAttr) != field.val()
+			type = field.attr('type')
+			if(type == 'checkbox') {
+				return field.attr(options.originalAttr).toString() != field.is(':checked').toString()
+			} else {
+				return field.attr(options.originalAttr) != field.val()
+			}
 		} else return false;
 	}
 	
@@ -60,6 +70,8 @@ $(function() {
 		originalAttr: 'original-data', 
 		selector: 	"input[type='text']:visible:enabled," +
 					"input[type='password']:visible:enabled," +
+					"input[type='checkbox']:visible:enabled," +
+					"input[type='radio']:visible:enabled," +
 					"textarea:visible:enabled," +
 					"select:visible:enabled",
 		// called when the original value is not equal to current value
@@ -69,7 +81,7 @@ $(function() {
 	}
 	
 	var changed = function(options, field) {
-		return field.attr(options.originalAttr) != field.val()
+		return field.isChanged()
 	}
 	
 	var monitTextfield = function(options, parent, field) {
@@ -82,11 +94,19 @@ $(function() {
 	
 	var saveOriginals = function(options, parent) {
 		parent.elegibleChildren().each(function() {
-			$(this).attr(options.originalAttr, $(this).val())
-			$(this).bind('blur keydown keyup change', function() {
+			field = $(this)
+			type  = field.attr('type')
+			if(type == 'checkbox') {
+				field.attr(options.originalAttr, $(this).is(':checked'))
+			}
+			else { // everything else...
+				field.attr(options.originalAttr, $(this).val())
+			}
+			
+			field.bind('blur keydown keyup change', function() {
 				monitTextfield(options, parent, $(this))
 			})
-			$(this).data('parent', parent)
+			field.data('parent', parent)
 		});	
 	}
 })

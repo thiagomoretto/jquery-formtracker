@@ -42,12 +42,14 @@
 	<a class="undo" href="#" undo="last_name">Undo</a>
 	</p>
 
+	<!--
 	<p>
-	<label for="sex">Last name:</label>
+	<label for="sex">Sex:</label>
 	<input type="radio" name="sex" id="sexM" value="M" checked="checked" /> Male
 	<input type="radio" name="sex" id="sexF" value="F" /> Female
 	<strong>Not working yet!</strong>
 	</p>
+	-->
 	
 	<p>
 	<label for="profession">Profession:</label>
@@ -56,6 +58,11 @@
 		<option value="2">Webdesigner</option>
 		<option value="3">Other</option>
 	</select><a class="undo" href="#" undo="profession">Undo</a>
+	</p>
+	
+	<p>
+	<label for="term">You agreed with the terms?</label>
+	<input type="checkbox" id="term" value="Y" /><a class="undo" href="#" undo="term">Undo</a>
 	</p>
 
 	<p><input id="submit" type="submit" /></p>
@@ -103,7 +110,6 @@ $(function() {
     },
     
     teardown: function() {
-      
     },
     
 		testChangedVal: function() { with(this) {
@@ -111,6 +117,15 @@ $(function() {
 			original = first_name_field.val()
 			first_name_field.val('New value')
       assert(first_name_field.isChanged());
+		}},
+
+		testChangeAndUndoCheckbox: function() { with(this) { 
+			term = $("#term")
+			term.attr('checked', 'checked')
+			assert(term.isChanged());
+			
+			term.undo()
+			assert(!term.isChanged());
 		}},
 
     testUndoVal: function() { with(this) {
