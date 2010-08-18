@@ -8,7 +8,7 @@ $(function() {
 		field  = $(this)
 		parent = field.data('parent');
 		if(parent != null) {
-			options = $.data(parent, 'options');
+			options = parent.data('options');
 			type = field.attr('type')
 			if(type == 'checkbox' || type == 'radio') {
 				field.attr('checked', field.attr(options.originalAttr) == 'true' ? 'checked' : '')
@@ -23,7 +23,7 @@ $(function() {
 		field  = $(this)
 		parent = field.data('parent');
 		if(parent != null) { 
-			options = $.data(parent, 'options');
+			options = parent.data('options');
 			type = field.attr('type')
 			if(type == 'checkbox' || type == 'radio') {
 				return field.attr(options.originalAttr).toString() != field.is(':checked').toString()
@@ -33,38 +33,50 @@ $(function() {
 		} else return false;
 	}
 	
+	$.fn.addToMonitor = function(newField) {
+		parent = $(this)
+		newField.monitField(parent)
+		extendForm(parent);
+	}
+	
+	$.fn.monitField = function(parent) {
+		field = $(this)
+		type  = field.attr('type')
+		options = parent.data('options');
+		if(type == 'checkbox' || type == 'radio') {
+			eventsToBind = 'blur change'
+			field.attr(options.originalAttr, $(this).is(':checked'))
+		}
+		else { // everything else...
+			eventsToBind = 'blur keydown keyup change'
+			field.attr(options.originalAttr, $(this).val())
+		}
+		field.bind(eventsToBind, function() {
+			monit(options, parent, $(this))
+		})
+		field.data('parent', parent)
+	}
+	
+	$.fn.reMonitor = function() {
+		return this.each(function() {
+			var $this = $(this)
+			var currentOptions = parent.data('options')
+			$this.monitor(currentOptions)
+		});
+	}
+	
 	$.fn.monitor = function(options) {
 		var opts = $.extend({}, $.fn.monitor.defaults, options);
 		return this.each(function() {
 			var $this = $(this)
 			if(!$this.is('form')) return;
 			
-			$.data($this, 'options', opts)
+			$this.data('options', opts)
 
-			$.extend($this, {
-				// Return elegible children
-				elegibleChildren: function() {
-				 	return $(this).children().find(opts.selector)
-				},
-				// Return how many field are dirty
-				howManyDirtyFields: function() {
-					dirtyCount = 0
-					$this.elegibleChildren().each(function() {
-						if ($(this).isChanged()) dirtyCount ++;
-					});	
-					return dirtyCount;
-				},
-				// Return true if has dirty fields
-				hasDirtyFields: function() { 
-					return $this.howManyDirtyFields() > 0
-				}
-			})
-			
-			saveOriginals(opts, $this);
+			extendForm($this);
+			monitChildren(opts, $this);
 		});
 	}
-	
-	// $.fn.monitor.elegibleChildren = function() { }
 
 	$.fn.monitor.defaults = {
 		originalAttr: 'original-data', 
@@ -80,6 +92,28 @@ $(function() {
 		unchanged: function(parent, field) { }
 	}
 	
+	var extendForm = function(form) {
+		opts = form.data('options')
+		$.extend(form, {
+			// Return elegible children
+			elegibleChildren: function() {
+			 	return form.children().find(opts.selector)
+			},
+			// Return how many field are dirty
+			howManyDirtyFields: function() {
+				dirtyCount = 0
+				form.elegibleChildren().each(function() {
+					if ($(this).isChanged()) dirtyCount ++;
+				});	
+				return dirtyCount;
+			},
+			// Return true if has dirty fields
+			hasDirtyFields: function() { 
+				return form.howManyDirtyFields() > 0
+			}
+		})
+	}
+	
 	var changed = function(options, field) {
 		return field.isChanged()
 	}
@@ -92,22 +126,9 @@ $(function() {
 		}
 	}
 	
-	var saveOriginals = function(options, parent) {
+	var monitChildren = function(options, parent) {
 		parent.elegibleChildren().each(function() {
-			field = $(this)
-			type  = field.attr('type')
-			if(type == 'checkbox' || type == 'radio') {
-				eventsToBind = 'blur change'
-				field.attr(options.originalAttr, $(this).is(':checked'))
-			}
-			else { // everything else...
-				eventsToBind = 'blur keydown keyup change'
-				field.attr(options.originalAttr, $(this).val())
-			}
-			field.bind(eventsToBind, function() {
-				monit(options, parent, $(this))
-			})
-			field.data('parent', parent)
+			$(this).monitField(parent)
 		});	
 	}
 })

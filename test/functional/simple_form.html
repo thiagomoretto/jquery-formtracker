@@ -4,16 +4,7 @@
   <title>formonitor: Simple form</title>
   <style type="text/css">
     body { background-color: #fff; color: #666; font-family: arial, sans-serif; }
-    div.dialog {
-      width: 25em;
-      padding: 0 4em;
-      margin: 4em auto 0 auto;
-      border: 1px solid #ccc;
-      border-right-color: #999;
-      border-bottom-color: #999;
-    }
     h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
-
 		.changed {
 			border: 2px solid #c00;
 		}
@@ -68,27 +59,55 @@
 	<label for="term">You agreed with the terms?</label>
 	<input type="checkbox" id="term" value="Y" /><a class="undo" href="#" undo="term">Undo</a>
 	</p>
+	
+	<div id="new_field">
+		<a href="#" id="add_field">Add new field (dynamically)...</a>
+	</div>
 
 	<p><input id="submit" type="submit" /></p>
 </form>
 </div>
 
 <script type="text/javascript">
-$(function() {
-	$(".undo").click(function(evt) {
-		undoField = $(this).attr('undo');
-		$('#'+undoField).undo();
-		evt.preventDefault();
-		evt.stopPropagation();
-	});
-	
-	var lockSubmitButton = function() {
-		$('#submit').attr('disabled', 'disabled')
-	}
+var createDynamicField = function() {
+	$("#new_field").html(
+		'<label for="dynamic">Dynamic</label>' +
+		'<input type="text" id="dynamic" value="My dynamic value" />'	+
+		'<a class="undo" href="#" undo="dynamic">Undo</a>'
+	);
 
-	var unlockSubmitButton = function() {
-		$('#submit').removeAttr('disabled')
-	}
+	$("#myform").addToMonitor($("#dynamic"))
+
+	$(".undo").click(function(evt) {
+		undoField($(this).attr('undo'))
+	});
+}
+
+var removeDynamicField = function() {
+	$("#new_field").html('<a href="#" id="add_field">Add new field (dynamically)...</a>')
+	$("#add_field").click(createDynamicField);
+}
+
+var undoField = function(field) {
+	$('#' + field).undo();
+}
+
+var lockSubmitButton = function() {
+	$('#submit').attr('disabled', 'disabled')
+}
+
+var unlockSubmitButton = function() {
+	$('#submit').removeAttr('disabled')
+}
+
+lockSubmitButton() // lock at startup
+
+$(function() {
+	$("#add_field").click(createDynamicField);
+		
+	$(".undo").click(function(evt) {
+		undoField($(this).attr('undo'))
+	});
 	
 	$("#myform").monitor({
 		changed: function(parent, field) {
@@ -100,8 +119,6 @@ $(function() {
 			if ( ! parent.hasDirtyFields()) lockSubmitButton()
 		}
 	});
-	
-	lockSubmitButton() // lock at startup
 })
 </script>
 
@@ -148,6 +165,19 @@ $(function() {
 			
 			description.undo()
 			assert(!description.isChanged());
+		}},
+		
+		testChangeAndDynamicField: function() { with(this) {
+			createDynamicField()
+			
+			dynamic = $("#dynamic")
+			dynamic.val('working?')
+			assert(dynamic.isChanged());
+
+			dynamic.undo()
+			assert(!dynamic.isChanged());
+			
+			removeDynamicField()
 		}},
 
     testUndoVal: function() { with(this) {
