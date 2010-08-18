@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>formonitor: Simple form</title>
+  <style type="text/css">
+    body { background-color: #fff; color: #666; font-family: arial, sans-serif; }
+    div.dialog {
+      width: 25em;
+      padding: 0 4em;
+      margin: 4em auto 0 auto;
+      border: 1px solid #ccc;
+      border-right-color: #999;
+      border-bottom-color: #999;
+    }
+    h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
+
+		.changed {
+			border: 2px solid #c00;
+		}
+  </style>
+
+	<script type="text/javascript" src="../../lib/jquery/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="../../src/formonitor.js"></script>
+
+	<!-- jsUnitTest assets -->
+	<script type="text/javascript" src="../assets/jsunittest.js"></script>
+	<link rel="stylesheet" href="../assets/unittest.css" type="text/css" />
+</head>
+<body>
+<div class="demo">
+<h2>Simple form</h2>
+<form id="myform">
+	<p>
+	<label for="first_name">First name:</label>
+	<input id="first_name" type="text" name="first_name" value="Thiago" />
+	<a class="undo" href="#" undo="first_name">Undo</a>
+	</p>
+
+	<p>
+	<label for="last_name">Last name:</label>
+	<input id="last_name" type="text" name="last_name"  value="Moretto" />
+	<a class="undo" href="#" undo="last_name">Undo</a>
+	</p>
+
+	<p>
+	<label for="sex">Last name:</label>
+	<input type="radio" name="sex" id="sexM" value="M" checked="checked" /> Male
+	<input type="radio" name="sex" id="sexF" value="F" /> Female
+	<strong>Not working yet!</strong>
+	</p>
+	
+	<p>
+	<label for="profession">Profession:</label>
+	<select id="profession">
+		<option value="1">Programmer</option>
+		<option value="2">Webdesigner</option>
+		<option value="3">Other</option>
+	</select><a class="undo" href="#" undo="profession">Undo</a>
+	</p>
+
+	<p><input id="submit" type="submit" /></p>
+</form>
+</div>
+
+<script type="text/javascript">
+$(function() {
+	$(".undo").click(function(evt) {
+		undoField = $(this).attr('undo');
+		$('#'+undoField).undo();
+		evt.preventDefault();
+		evt.stopPropagation();
+	});
+	
+	var lockSubmitButton = function() {
+		$('#submit').attr('disabled', 'disabled')
+	}
+
+	var unlockSubmitButton = function() {
+		$('#submit').removeAttr('disabled')
+	}
+	
+	$("#myform").monitor({
+		changed: function(parent, field) {
+			field.addClass('changed')
+			unlockSubmitButton()
+		},
+		unchanged: function(parent, field) {
+			field.removeClass('changed')
+			if ( ! parent.hasDirtyFields()) lockSubmitButton()
+		}
+	});
+	
+	lockSubmitButton() // lock at startup
+})
+</script>
+
+<div id="testlog"></div>
+
+<script type="text/javascript">
+// <![CDATA[
+  new Test.Unit.Runner({
+    setup: function() {
+    },
+    
+    teardown: function() {
+      
+    },
+    
+		testChangedVal: function() { with(this) {
+			first_name_field = $('#first_name')
+			original = first_name_field.val()
+			first_name_field.val('New value')
+      assert(first_name_field.isChanged());
+		}},
+
+    testUndoVal: function() { with(this) {
+			first_name_field = $('#first_name')
+			original = first_name_field.val()
+			first_name_field.val('New value')
+			first_name_field.undo()
+      assert(first_name_field.val() != original);
+    }},
+
+		testHasDirtyFields: function() { with(this) {
+			first_name_field = $('#first_name')
+			myform = first_name_field.data('parent')
+
+			assert(myform.hasDirtyFields() == false)
+			
+			first_name_field.val('New value')
+			assert(myform.hasDirtyFields() == true)
+
+			first_name_field.undo()
+      assert(myform.hasDirtyFields() == false)
+    }},
+  }); 
+// ]]>
+</script>
+
+</body>
+</html>
