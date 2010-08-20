@@ -9,6 +9,7 @@
 $(function() {
 	$.fn.undo = function() {
 		field  = $(this)
+		tag	   = field.get(0).tagName.toLowerCase()
 		parent = field.data('parent');
 		if(parent != null) {
 			options = parent.data('options');
@@ -16,7 +17,13 @@ $(function() {
 			if(type == 'checkbox' || type == 'radio') {
 				field.attr('checked', field.attr(options.originalAttr) == 'true' ? 'checked' : '')
 			} else {
-				field.val(field.attr(options.originalAttr))
+				if(tag == 'select') {
+					strVal = field.attr(options.originalAttr)
+					vals   = strVal.split(",")
+					field.val(vals)
+				} else {
+					field.val(field.attr(options.originalAttr))
+				}
 			}
 			options.unchanged(parent, field)
 		}
@@ -24,6 +31,7 @@ $(function() {
 	
 	$.fn.isChanged = function() {
 		field  = $(this)
+		tag	   = field.get(0).tagName.toLowerCase()
 		parent = field.data('parent');
 		if(parent != null) { 
 			options = parent.data('options');
@@ -31,13 +39,19 @@ $(function() {
 			if(type == 'checkbox' || type == 'radio') {
 				return field.attr(options.originalAttr).toString() != field.is(':checked').toString()
 			} else {
-				return field.attr(options.originalAttr) != field.val()
+				if(tag == 'select') {
+					original = field.attr(options.originalAttr)
+					return original.toString() != field.val().toString()
+				} else {
+					return field.attr(options.originalAttr) != field.val()
+				}
 			}
 		} else return false;
 	}
 	
 	var trackField = function(parent, newField) {
 		field = newField
+		tag	  = newField.get(0).tagName.toLowerCase()
 		type  = field.attr('type')
 		options = parent.data('options');
 		if(type == 'checkbox' || type == 'radio') {
@@ -45,8 +59,19 @@ $(function() {
 			field.attr(options.originalAttr, newField.is(':checked'))
 		}
 		else { // everything else...
-			eventsToBind = 'blur keydown keyup change'
-			field.attr(options.originalAttr,newField.val())
+			if(tag == 'select') {
+				eventsToBind = "change"
+				if(field.attr('multiple')) {
+					var currVal = newField.map(function() { return $(this).val(); }).get();
+					field.attr(options.originalAttr, currVal)
+				} else {
+					field.attr(options.originalAttr, newField.val())
+				}
+			}
+			else { // input, textarea
+				eventsToBind = 'blur keydown keyup change'
+				field.attr(options.originalAttr,newField.val())
+			}
 		}
 		field.bind(eventsToBind, function() {
 			track(options, parent, newField)
