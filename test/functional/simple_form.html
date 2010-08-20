@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>formonitor: Simple form</title>
+  <title>jQuery FormTracker: Simple form + Tests</title>
   <style type="text/css">
     body { background-color: #fff; color: #666; font-family: arial, sans-serif; }
     h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
@@ -11,7 +11,7 @@
   </style>
 
 	<script type="text/javascript" src="../../lib/jquery/jquery-1.4.2.js"></script>
-	<script type="text/javascript" src="../../src/formonitor.js"></script>
+	<script type="text/javascript" src="../../src/jquery-formtracker.js"></script>
 
 	<!-- jsUnitTest assets -->
 	<script type="text/javascript" src="../assets/jsunittest.js"></script>
@@ -19,7 +19,7 @@
 </head>
 <body>
 <div class="demo">
-<h2>Simple form</h2>
+<h2>Demo Form</h2>
 <form id="myform">
 	<p>
 	<label for="first_name">First name:</label>
@@ -76,7 +76,7 @@ var createDynamicField = function() {
 		'<a class="undo" href="#" undo="dynamic">Undo</a>'
 	);
 
-	$("#myform").addToMonitor($("#dynamic"))
+	$("#myform").addToTracker($("#dynamic"))
 
 	$(".undo").click(function(evt) {
 		undoField($(this).attr('undo'))
@@ -109,7 +109,7 @@ $(function() {
 		undoField($(this).attr('undo'))
 	});
 	
-	$("#myform").monitor({
+	$("#myform").trackable({
 		changed: function(parent, field) {
 			field.addClass('changed')
 			unlockSubmitButton()

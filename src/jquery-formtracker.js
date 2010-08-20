@@ -1,5 +1,8 @@
 //
-// jQuery FormMonitoring Plugin 0.1b
+// jQuery FormTracker Plugin
+//
+// Usage:
+// $("#myform").trackable()
 //
 // Copyright (c) 2010 Thiago Moretto
 //
@@ -33,40 +36,32 @@ $(function() {
 		} else return false;
 	}
 	
-	$.fn.addToMonitor = function(newField) {
-		parent = $(this)
-		newField.monitField(parent)
-		extendForm(parent);
-	}
-	
-	$.fn.monitField = function(parent) {
-		field = $(this)
+	var trackField = function(parent, newField) {
+		field = newField
 		type  = field.attr('type')
 		options = parent.data('options');
 		if(type == 'checkbox' || type == 'radio') {
 			eventsToBind = 'blur change'
-			field.attr(options.originalAttr, $(this).is(':checked'))
+			field.attr(options.originalAttr, newField.is(':checked'))
 		}
 		else { // everything else...
 			eventsToBind = 'blur keydown keyup change'
-			field.attr(options.originalAttr, $(this).val())
+			field.attr(options.originalAttr,newField.val())
 		}
 		field.bind(eventsToBind, function() {
-			monit(options, parent, $(this))
+			track(options, parent, newField)
 		})
 		field.data('parent', parent)
 	}
 	
-	$.fn.reMonitor = function() {
-		return this.each(function() {
-			var $this = $(this)
-			var currentOptions = parent.data('options')
-			$this.monitor(currentOptions)
-		});
+	$.fn.addToTracker = function(newField) {
+		parent = $(this)
+		trackField(parent, newField)
+		extendForm(parent);
 	}
 	
-	$.fn.monitor = function(options) {
-		var opts = $.extend({}, $.fn.monitor.defaults, options);
+	$.fn.trackable = function(options) {
+		var opts = $.extend({}, $.fn.trackable.defaults, options);
 		return this.each(function() {
 			var $this = $(this)
 			if(!$this.is('form')) return;
@@ -74,11 +69,11 @@ $(function() {
 			$this.data('options', opts)
 
 			extendForm($this);
-			monitChildren(opts, $this);
+			trackChildren(opts, $this);
 		});
 	}
 
-	$.fn.monitor.defaults = {
+	$.fn.trackable.defaults = {
 		originalAttr: 'original-data', 
 		selector: 	"input[type='text']:visible:enabled," +
 					"input[type='password']:visible:enabled," +
@@ -118,7 +113,7 @@ $(function() {
 		return field.isChanged()
 	}
 	
-	var monit = function(options, parent, field) {
+	var track = function(options, parent, field) {
 		if (changed(options, field)) {
 			options.changed(parent, field)
 		} else {
@@ -126,9 +121,9 @@ $(function() {
 		}
 	}
 	
-	var monitChildren = function(options, parent) {
+	var trackChildren = function(options, parent) {
 		parent.elegibleChildren().each(function() {
-			$(this).monitField(parent)
+			trackField(parent, $(this))
 		});	
 	}
 })
