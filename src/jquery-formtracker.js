@@ -49,6 +49,12 @@ $(function() {
 		} else return false;
 	}
 	
+	$.fn.hasDirtyFields = function() {
+ 		form = $(this)
+		extendForm(form)
+		return form.hasDirtyFields()
+	}
+	
 	var trackField = function(parent, newField) {
 		field = newField
 		tag	  = newField.get(0).tagName.toLowerCase()
